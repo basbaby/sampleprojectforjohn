@@ -1,0 +1,172 @@
+#%RAML 1.0
+title: APIX Kafka SAPI
+description: A framework implementation for storing, reading and analysing data.
+version: v1
+baseUri: https://anypoint.mulesoft.com/api/v1/
+mediaType: application/json
+protocols: [HTTPS,HTTP]
+
+documentation:
+  - title: apacheKafka-api-spec
+    content: Welcome to the apacheKafka-api-spec.
+
+securitySchemes: 
+  clientIdPolicy: !include /client-id-enforcement-security-scheme/client-id-enforcement-security-scheme.raml
+
+types:
+  publishPostRequestType: !include /datatypes/request/publish/publish-post-request-datatype.raml
+  publishPostResponseType: !include /datatypes/response/publish/publish-post-response-datatype.raml
+  consumeGetResponseType: !include datatypes/response/consume/consume-get-response-datatype.raml
+  seekGetResponseType: !include /datatypes/response/seek/seek-get-response-datatype.raml
+
+uses:
+  comLib: /common-error-responses/common-error-responses-library.raml
+
+traits:
+  commonHeaders: !include /common-headers-trait/http-common-headers-trait.raml
+
+/kafka-api:
+  /publish:
+    post:
+      description: Publish message to Kafka Topic
+      displayName: Publish Message
+      is: [comLib.400,comLib.401,comLib.404,comLib.405,comLib.415,comLib.422,comLib.500,comLib.503,comLib.504,commonHeaders]
+      securedBy:
+        - clientIdPolicy
+      body:
+        application/json:
+          type: publishPostRequestType
+          example: !include /examples/request/publish/publish-post-request-example.json
+            
+      responses:
+        200:
+          body:
+            application/json:
+              type: publishPostResponseType
+              description: Success Message
+              example: !include /examples/response/publish/publish-post-response-example.json
+        400:
+          body:
+            application/json:
+              type: publishPostResponseType
+              description: Error Message
+              example: !include /examples/response/publish/publish-post-response-error-example.json
+  /consume:
+    get:
+      description: Consume message from Kafka Topic
+      displayName: Consume Message
+      is: [comLib.400,comLib.401,comLib.404,comLib.405,comLib.415,comLib.422,comLib.500,comLib.503,comLib.504,commonHeaders]
+      securedBy:
+        - clientIdPolicy
+      responses:
+        200:
+          body:
+            application/json:
+              type: consumeGetResponseType
+              description: Success Message
+              example: !include /examples/response/consume/consume-get-response-example.json
+        400:
+          body:
+            application/json:
+              type: consumeGetResponseType
+              description: Error Message
+              example: !include /examples/response/consume/consume-get-response-error-example.json
+  /seekReplica:
+    get:
+      description: ReConsuming message from Kafka Topic
+      displayName: Seek Offset
+      is: [comLib.400,comLib.401,comLib.404,comLib.405,comLib.415,comLib.422,comLib.500,comLib.503,comLib.504,commonHeaders]
+      securedBy:
+        - clientIdPolicy
+      queryParameters:
+        partition:
+          type: integer
+          required: true
+        offset:
+          type: integer
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: seekGetResponseType
+              description: Success Message
+              example: !include /examples/response/seek/seek-get-response-example.json
+        400:
+          body:
+            application/json:
+              type: seekGetResponseType
+              description: Error Message
+              example: !include /examples/response/seek/seek-get-response-error-example.json
+  /unit:
+    /publish:
+      post:
+        description: Publish message to Kafka Topic
+        displayName: Publish Message
+        is: [comLib.400,comLib.401,comLib.404,comLib.405,comLib.415,comLib.422,comLib.500,comLib.503,comLib.504,commonHeaders]
+        securedBy:
+          - clientIdPolicy
+        body:
+          application/json:
+            type: publishPostRequestType
+            example: !include /examples/request/publish/publish-post-request-example.json
+        responses:
+          200:
+            body:
+              application/json:
+                type: publishPostResponseType
+                description: Success Message
+                example: !include /examples/response/publish/publish-post-response-example.json
+          400:
+            body:
+              application/json:
+                type: publishPostResponseType
+                description: Error Message
+                example: !include /examples/response/publish/publish-post-response-error-example.json
+    /consume:
+      get:
+        description: Consume message from Kafka Topic
+        displayName: Consume Message
+        is: [comLib.400,comLib.401,comLib.404,comLib.405,comLib.415,comLib.422,comLib.500,comLib.503,comLib.504,commonHeaders]
+        securedBy:
+          - clientIdPolicy
+        responses:
+          200:
+            body:
+              application/json:
+                type: consumeGetResponseType
+                description: Success Message
+                example: !include /examples/response/consume/consume-get-response-example.json
+          400:
+            body:
+              application/json:
+                type: consumeGetResponseType
+                description: Error Message
+                example: !include /examples/response/consume/consume-get-response-error-example.json
+    /seekConsume:
+      get:
+        description: ReConsuming message from Kafka Topic
+        displayName: Seek Offset
+        is: [comLib.400,comLib.401,comLib.404,comLib.405,comLib.415,comLib.422,comLib.500,comLib.503,comLib.504,commonHeaders]
+        securedBy:
+          - clientIdPolicy
+        queryParameters:
+          partition:
+            type: integer
+            required: true
+          offset:
+            type: integer
+            required: true
+        responses:
+          200:
+            body:
+              application/json:
+                type: seekGetResponseType
+                description: Success Message
+                example: !include /examples/response/seek/seek-get-response-example.json
+          400:
+            body:
+              application/json:
+                type: seekGetResponseType
+                description: Error Message
+                example: !include /examples/response/seek/seek-get-response-error-example.json

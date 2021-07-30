@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger"
+	xmlns:kafka="http://www.mulesoft.org/schema/mule/kafka"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/kafka http://www.mulesoft.org/schema/mule/kafka/current/mule-kafka.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd">
+<flow name="apix-consume-seekflow" doc:id="fa465ad3-cdca-4a72-898e-2ab78f99e655" >
+		<json-logger:logger doc:name="Seek Consume Start Logger" doc:id="e82584b6-8ab9-4ee9-859a-190a0c7082d3" config-ref="jsonLoggerConfig" message="Seek Consume Start Logs"/>
+		<kafka:seek offset="#[attributes.queryParams.offset]" doc:name="SetOffsetToPrevious" doc:id="7d430de5-6eab-4901-b761-c1b1ac6f48a0" config-ref="apacheKafkaConsumerConfigurationSingle" topic="${topic.value2}" partition="#[attributes.queryParams.partition]"/>
+		<kafka:consume doc:name="ConsumePreviousMessage" doc:id="18b28de5-2940-4b15-826a-0cf61fb2e306" config-ref="apacheKafkaConsumerConfigurationSingle"/>
+		<json-logger:logger doc:name="Consumer Reset Offset After Logger" doc:id="b31d9a8a-83d5-40b7-9d52-029a3b6a9e62" config-ref="jsonLoggerConfig" message="Consumer Reset Offset After Logger" tracePoint="FLOW"/>
+		<ee:transform doc:name="SeekReconsume" doc:id="6948b9ae-4a20-4166-a1d8-55b995c3b3db">
+			<ee:message>
+				<ee:set-payload resource="dwl/seek-reconsume.dwl" />
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="Seek Consume End Logger" doc:id="99b63e62-1af2-4c52-9971-7bd7beccc5b5" config-ref="jsonLoggerConfig" message="Seek Consume End Logs" tracePoint="END"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="bf150073-92af-479d-ae46-61ce9c6509d8" type="ANY">
+				<ee:transform doc:name="Error Payload" doc:id="662df3f6-106b-4950-ba4d-173c751f3bfa" >
+					<ee:message >
+						<ee:set-payload resource="dwl/error-main.dwl" />
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="Seek Consume Error Logger" doc:id="1ed93bd8-291c-46b6-bee1-e746a098dd22" config-ref="jsonLoggerConfig" message="Seek Consume Unit Error Logger" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="apix-kafka-unit-publishflow" doc:id="7b6614f0-d06c-495d-a2be-b1d959feca97" >
+		<json-logger:logger doc:name="Publish Unit Start Logger" doc:id="e00dbc31-5dad-4cf4-9ec7-ee4d9f4e060a" config-ref="jsonLoggerConfig" message="Publish Unit Start Logger"/>
+		<kafka:publish doc:name="Publish" doc:id="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" config-ref="apacheKafkaProducerConfiguration" topic="${topic.value2}" key="#[now()]"/>
+		<json-logger:logger doc:name="Publish Message After Logger" doc:id="d2a09716-6918-4da1-998e-78b2feb916c1" config-ref="jsonLoggerConfig" message="Unit Publish Message After Logger" tracePoint="FLOW"/>
+		<ee:transform doc:name="PublishMessage" doc:id="693aef3c-5b97-483a-8cf3-e89b2e3779a8" >
+			<ee:message >
+				<ee:set-payload resource="dwl/publish-unit.dwl" />
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="Publish Unit End Logger" doc:id="c118d3f6-d982-4ba4-886b-b88c649a32da" config-ref="jsonLoggerConfig" message="Publish Unit End Logs" tracePoint="END"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="86b319f9-27f7-4ab0-8ac7-12f6f5b99087" type="KAFKA:CONNECTIVITY, KAFKA:INPUT_TOO_LARGE, KAFKA:INVALID_TOPIC_PARTITION, KAFKA:RETRY_EXHAUSTED, KAFKA:TIMEOUT">
+				<ee:transform doc:name="ErrorMessage" doc:id="789436b4-422b-4197-839a-48ac3c5a5e18" >
+					<ee:message >
+						<ee:set-payload resource="dwl/error-main.dwl"></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="Publish Error Logger" doc:id="3b4e9683-657f-4047-836f-d3e03e0328e6" config-ref="jsonLoggerConfig" message="Publish Error Logger" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="apix-kafka-unit-consumeflow" doc:id="f14fe231-0267-4f13-a7c7-169a3f089869" >
+		<json-logger:logger doc:name="Consume Unit Start Logger" doc:id="62f4f994-b0e7-4e58-8d17-5552be10ddcd" config-ref="jsonLoggerConfig" message="Consume Unit Start Logger"/>
+		<kafka:consume doc:name="Consume-MessageFromTopic" doc:id="673dab7b-0a1c-4ef5-9ec2-117f17422289" config-ref="apacheKafkaConsumerConfigurationSingle"/>
+		<json-logger:logger doc:name="Consume Unit Message After Logger" doc:id="0a5b7633-4066-4962-bf9a-b2f0e1382bdc" config-ref="jsonLoggerConfig" message="Consume Unit Message After Logger" tracePoint="FLOW"/>
+		<ee:transform doc:name="Consumed" doc:id="4c5db85a-7111-4ca6-ac62-94ef77fca97c">
+			<ee:message>
+				<ee:set-payload resource="dwl/consume.dwl" />
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="Consume Unit Message End Logger" doc:id="1db5a1a8-22de-47ea-9009-3500df83f33a" config-ref="jsonLoggerConfig" message="Consume Unit Message End Logger" tracePoint="END"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6cc4a802-5bfb-4ed7-948e-9beece2ad08d" type="ANY">
+				<ee:transform doc:name="Error Message" doc:id="1c466a00-f418-49e5-a15b-f1e1f4196e0d" >
+					<ee:message >
+						<ee:set-payload resource="dwl/error-main.dwl"></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="Error Consume Logger" doc:id="f74e6658-e29d-4eeb-9b2d-99c9c5211787" config-ref="jsonLoggerConfig" message="Error Consume Logger" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

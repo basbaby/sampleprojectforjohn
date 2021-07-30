@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="attributes" format="java">
+      <types:shape format="java" element="org.mule.extension.http.api.HttpAttributes"/>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#935fb6ce-a13e-4c0a-829e-461b5ebf7fa7"/>
+  <types:enrichment select="#3e6c0f0f-349f-4688-af79-ab808d619bbc"/>
+  <types:enrichment select="#c8c3f2c9-51cb-4024-aec3-6b15aa752e2b"/>
+  <types:enrichment select="#df9e57f5-7d0c-4886-ab53-a3a2b49abb19">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:attributes type="attributes"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

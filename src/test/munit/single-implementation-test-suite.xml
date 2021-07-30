@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="apix-kafka-unit-implementation-test-suite.xml" />
+	<munit:test name="apix-unit-consumeSeekFlowTest" doc:id="2a9a9472-1112-4d80-80b4-2b0de5f37493" description="Test" timeOut="1200000">
+		<munit:behavior >
+			<munit:set-event doc:name="QueryAttributes" doc:id="1d2d6766-e433-4956-8c81-be074750e76a" >
+				<munit:attributes value='#[&#10;{&#10;queryParams:{&#10;"partition": "0",&#10;"offset": "12"&#10;}&#10;}&#10;]' encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="SeekOffset-Unit" doc:id="b23fd17c-47dc-45c3-9872-87ae90535478" processor="kafka:seek">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="7d430de5-6eab-4901-b761-c1b1ac6f48a0" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;"Offset set to Previous Value"&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="SeekConsume-Unit" doc:id="4693e1a9-8132-4a94-b75d-2089d7352b3f" processor="kafka:consume">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="18b28de5-2940-4b15-826a-0cf61fb2e306" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;"Message Consumed Once"&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-consume-seekflow" doc:id="17682e2b-fd3d-4288-8929-a282f94e0b83" name="apix-consume-seekflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Payload" doc:id="d6292151-6f45-4406-9def-71426320e939" expression="#[payload]" is="#[MunitTools::notNullValue()]" message="#['Not the expected payload']"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-kafka-unitPublishFlowTest" doc:id="d07694f6-3cef-4249-9ea6-e9c125b89a6b" description="Test" timeOut="120000">
+		<munit:behavior >
+			<munit:set-event doc:name="Payload" doc:id="caf3e35d-b47d-445e-aa00-9fd94038023e" >
+				<munit:payload value='#[&#10;output application/json&#10;---&#10;"Payload Passing through"&#10;]' mediaType="application/json" />
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="PublishUnit" doc:id="50a55a3f-fe11-45aa-aa38-f13c99d3dde7" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{"message": "Successfully Published"}&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-kafka-unit-publishflow" doc:id="d6c62160-64a7-4a0b-b263-e179e87b2673" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="PayloadEquals" doc:id="56795981-bf3c-4f4e-be88-f033e4ecb863" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload.Message must equalTo('Message Published..Consume Manually')]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-kafka-unitConsumeFlowTest" doc:id="4521111f-db13-4da1-93d5-4ed4168e3ff2" description="Test" timeOut="1200000">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="ConsumeUnit" doc:id="cfef106d-a1d3-4a06-a023-bbdbea739763" processor="kafka:consume">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="673dab7b-0a1c-4ef5-9ec2-117f17422289" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[&#10;output application/json&#10;---&#10;{'message': 'Message Consumed atmost once'}&#10;]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-kafka-unit-consumeflow" doc:id="442f8e1c-a631-4e0a-aca1-5299b938de9d" name="apix-kafka-unit-consumeflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="ConsumeMsgEquals" doc:id="7e436980-9df3-4752-bd5d-3858411dc6de" expression="#[payload.Message]" is="#[MunitTools::equalTo('Message consumed..Check for Lag')]" message="#['The Payload should be Message Consumed atmost once']"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-kafka-PayloadNullCheck-PublishFlowTest" doc:id="9457f7e2-d607-4ba5-b1f6-b1242883d93d" description="Test" timeOut="120000">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Publish-NotNullMock" doc:id="7feb754c-e60a-42a1-b7e5-6945c48967be" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;"Message Published - Mock"&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-kafka-unit-publishflow" doc:id="12255461-426b-4c18-8f0e-a24f6d0d0fb6" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="EndPayload NotNull" doc:id="d76a4755-409a-48e8-bdc0-fec366acbb96" message="Payload is Empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-kafka-NoMessageToConsumeFlowTest" doc:id="a3a1da2e-b363-443e-9f24-8ae0667f7178" description="Test" timeOut="1200000" expectedErrorType="MULE:CRITICAL" expectedErrorDescription="No message is available to Consume ">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="ConsumeMessage-Error" doc:id="4640f368-c53e-494b-8915-8bba0e81ffd2" processor="kafka:consume">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="673dab7b-0a1c-4ef5-9ec2-117f17422289" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="KAFKA:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-kafka-unit-consumeflow" doc:id="cdf209b8-987e-4c4c-a5fc-0ae54706571a" name="apix-kafka-unit-consumeflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="ConsumeMessage" doc:id="b7a6777e-f094-4a2a-b38d-23528ffd17bc" processor="kafka:consume" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="673dab7b-0a1c-4ef5-9ec2-117f17422289" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+			<munit-tools:fail doc:name="KAFKA:NOT_FOUND" doc:id="d6fc6747-b0d6-4f6f-97f1-4920f1880bcb" message="No message is available to Consume "/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-consume-ErrorseekflowTest" doc:id="4fb8a874-499b-41f0-ab28-34d72c20eedd" description="Test" timeOut="1200000" expectedErrorType="MULE:CRITICAL" expectedErrorDescription="No message is available to Consume ">
+		<munit:behavior >
+			<munit:set-event doc:name="Query attributes" doc:id="3bd956e8-4dd1-4678-9261-a53909abf136" >
+				<munit:attributes value='#[&#10;{&#10;queryParams:{&#10;"partition": "0",&#10;"offset": "12"&#10;}&#10;}&#10;]' encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="SeekConsume" doc:id="c21cfdc4-bee1-4b9a-a8a7-7465a0212f7d" processor="kafka:seek">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="7d430de5-6eab-4901-b761-c1b1ac6f48a0" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;"Seek"&#10;]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="ConsumeMessage-Error" doc:id="d82dee17-ff6b-4224-a1ba-6ebfbc7b3b36" processor="kafka:consume">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="18b28de5-2940-4b15-826a-0cf61fb2e306" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="KAFKA:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-consume-seekflow" doc:id="cc5a19e6-9ec2-4fcf-8926-89b9807f5567" name="apix-consume-seekflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:fail doc:name="KAFKA:NOT_FOUND" doc:id="55a8b944-2c17-405f-9c6d-0e48e39593ea" message="No message is available to Consume "/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-kafka-unit-ErrorpublishflowTest" doc:id="d4d72092-90b6-46f5-aaff-e693aa18144d" description="Test" timeOut="120000" expectedErrorType="MULE:CRITICAL" expectedErrorDescription="Input is enormous, cannot accept more than 1048576 bytes of data">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PublishMessage-Error" doc:id="58f28ae4-1127-4804-9b6a-6bc867333fe7" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="KAFKA:INPUT_TOO_LARGE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-kafka-unit-publishflow" doc:id="c3723286-762e-4e68-ba97-bb1c48ea8a8e" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:fail doc:name="KAFKA:INPUT_TOO_LARGE" doc:id="f1ea3754-f139-4665-aa1f-c7feb887b0f6" message="Input is enormous, cannot accept more than 1048576 bytes of data"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-OffsetValues-Missed-seekflowTest" doc:id="8cacecba-7550-4cc8-b832-d77f0bf61d5e" description="Test" timeOut="1200000" expectedErrorType="MULE:CRITICAL" expectedErrorDescription="There is no consumer for the topic: demopr-topic and partition">
+		<munit:behavior >
+			<munit:set-event doc:name="Attributes-Query" doc:id="bb2ed4de-a1ab-403b-8563-b935a6d3e5cb" >
+				<munit:attributes value='#[&#10;{&#10;queryParams: {&#10;"partition": null,&#10;"offset": null&#10;}&#10;}&#10;]' />
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="Seek-NoConsumer" doc:id="7b5a39d1-1959-4c75-98ae-90fa1c1f0f90" processor="kafka:seek">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="7d430de5-6eab-4901-b761-c1b1ac6f48a0" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="KAFKA:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-consume-seekflow" doc:id="000d6477-7074-4378-8618-3e90cdedcb3f" name="apix-consume-seekflow"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:fail doc:name="KAFKA:NOT_FOUND" doc:id="5dbf2931-7436-48af-9ee1-6bbd89a41e8c" message="There is no consumer for the topic: demopr-topic and partition"/>
+		</munit:validation>
+	</munit:test>
+
+</mule>

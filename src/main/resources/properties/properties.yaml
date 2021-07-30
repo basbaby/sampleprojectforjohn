@@ -1,0 +1,21 @@
+bootstrap:
+  server1: "localhost:9092"
+  server2: "localhost:9093"
+  server3: "localhost:9093"
+  server4: "localhost:9096"
+
+topic:
+  value1: "apiTestReplica"
+  value2: "cluster-topic-LB1"
+  value3: "cluster-topic-LB"
+  value4: "demopr-topic"
+  
+api: 
+  groupId: ${project.groupId}
+  artifactId: ${project.artifactId}
+  version: ${project.version}
+  spec: "resource::${project.groupId}:${project.artifactId}:${project.version}:oas:zip:api.json"
+  majorVersion: "v1"
+  port: "8082"
+  id: ""
+  listenerConfig: "apiHttpListenerConfig"

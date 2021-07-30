@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="apix-kafka-sapi-test-suite.xml" />
+	<munit:test name="apix-get-consume-config-test-200" doc:id="039caf09-22de-4edc-b45a-1777b0984cf1" description="Test" timeOut="1200000">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\kafka-api\consume:apix-kafka-sapi-config" doc:id="f4688fc1-5977-4523-883c-c945a667a7a1" name="get:\kafka-api\consume:apix-kafka-sapi-config"/>
+		</munit:execution>
+		<munit:validation>
+            <munit-tools:assert-that expression="#[output application/json --- payload]" is="#[MunitTools::equalTo(readUrl('classpath://scaffolder/response/get_200_kafka-api_consume_application_json.json'))]" message="The response payload is not correct!" doc:name="Assert That - Payload is Expected" />
+        </munit:validation>
+	</munit:test>
+	<munit:test name="apix-unit-seekconsume-config-test-200" doc:id="a6069418-e94f-4bd6-8de6-ed525066af91" description="Test" timeOut="120000">
+	    <munit:behavior >
+			<munit-tools:mock-when doc:name="seekConsume" doc:id="7181571b-2820-4792-b0e0-52d7e4a64fe8" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="80f3d7ba-3495-4197-bcd7-71d8aa67b8f6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{"message":"Successfully ReConsumed"}&#10;]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\kafka-api\unit\seekConsume:apix-kafka-sapi-config" doc:id="95daf932-631c-4bb4-9d74-0929dcac68f3" name="get:\kafka-api\unit\seekConsume:apix-kafka-sapi-config"/>
+		</munit:execution>
+		<munit:validation>
+            <munit-tools:assert-that expression="#[output application/json --- payload]" is="#[output application/json --- MunitTools::equalTo(readUrl('classpath://scaffolder/response/get_200_kafka-api_unit_seekconsume_application_json.json'))]" message="The response payload is not correct!" doc:name="Assert That - Payload is Expected" />
+        </munit:validation>
+	</munit:test>
+	<munit:test name="apix-seek-replica-config-test-200" doc:id="2e201e2c-d7ef-4da3-9b9c-af784e26d4c5" description="Test" timeOut="120000">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Seek Replica" doc:id="f41a00e7-b107-425d-b3f6-2975fd118dc8" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="4bc8e026-ffdb-4aa5-acdb-489bf3f9600f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{"message":"Successfully ReConsumed"}&#10;]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\kafka-api\seekReplica:apix-kafka-sapi-config" doc:id="2ad0f246-7cb6-4d47-8097-621adc350ad6" name="get:\kafka-api\seekReplica:apix-kafka-sapi-config"/>
+		</munit:execution>
+		<munit:validation>
+            <munit-tools:assert-that expression="#[output application/json --- payload]" is="#[output application/json ---&#10;MunitTools::equalTo(readUrl('classpath://scaffolder/response/get_200_kafka-api_seekreplica_application_json.json','application/json'))]" message="The response payload is not correct!" doc:name="Assert That - Payload is Expected" />
+        </munit:validation>
+	</munit:test>
+	<munit:test name="apix-unit-consume-config-test-200" doc:id="e206299e-fa66-422a-b63a-6bc588d338ac" description="Test" timeOut="120000">
+	    <munit:behavior >
+			<munit-tools:mock-when doc:name="ConsumeUnit" doc:id="19dc94c8-c712-431a-93bf-785988a53069" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="96c5a37a-7df6-4053-aabd-42f935562e0c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{"message":"Successfully Consumed"}&#10;]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\kafka-api\unit\consume:apix-kafka-sapi-config" doc:id="2a815e95-375b-40de-b516-dca8e675e684" name="get:\kafka-api\unit\consume:apix-kafka-sapi-config"/>
+		</munit:execution>
+		 <munit:validation>
+            <munit-tools:assert-that expression="#[output application/json --- payload]" is="#[output application/json --- MunitTools::equalTo(readUrl('classpath://scaffolder/response/get_200_kafka-api_unit_consume_application_json.json'))]" message="The response payload is not correct!" doc:name="Assert That - Payload is Expected" />
+        </munit:validation>
+	</munit:test>
+	<munit:test name="apix-publish-config-test-200" doc:id="ef99552f-7631-48a5-a4fa-4423df3f3c6b" description="Test" timeOut="120000">
+	    <munit:behavior>
+            <set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_kafka-api_publish_application_json.json')]" doc:name="PublishPayload"/>
+			<munit-tools:mock-when doc:name="Publish" doc:id="a6fd827d-cd12-4009-a702-52ea0b90f1f8" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="99fbfcb7-1886-491d-b311-f88807c9196c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{"message":"Successfully Published"}&#10;]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+        </munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to post:\kafka-api\publish:application\json:apix-kafka-sapi-config" doc:id="b6a524ec-8e95-4789-905e-52c91efeeb52" name="post:\kafka-api\publish:application\json:apix-kafka-sapi-config"/>
+		</munit:execution>
+		<munit:validation>
+            <munit-tools:assert-that expression="#[output application/json --- payload]" is="#[output application/json&#10;---&#10;MunitTools::equalTo(readUrl('classpath://scaffolder/response/post_200_kafka-api_publish_application_json.json'))]" message="The response payload is not correct!" doc:name="Assert That - Payload is Expected" />
+        </munit:validation>
+	</munit:test>
+	<munit:test name="apix-unit-publish-config-test-200" doc:id="b3048a06-dae0-4632-a5c8-8eef423a373b" description="Test" timeOut="120000">
+	    <munit:behavior>
+            <set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_kafka-api_unit_publish_application_json.json')]" doc:name="PublishUnit"/>
+			<munit-tools:mock-when doc:name="Publish-Unit" doc:id="b448394b-5331-47ba-a2c6-70aed35a3361" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f1a48909-61bb-4a56-b430-eed605dffb39" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;output application/json&#10;---&#10;{"message":"Successfully Published"}&#10;]' mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+        </munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to post:\kafka-api\unit\publish:application\json:apix-kafka-sapi-config" doc:id="dfb2b76d-c41c-41ee-ad54-33bdbf0997e2" name="post:\kafka-api\unit\publish:application\json:apix-kafka-sapi-config"/>
+		</munit:execution>
+		<munit:validation>
+            <munit-tools:assert-that expression="#[output application/json --- payload]" is="#[output application/json&#10;---&#10;MunitTools::equalTo(readUrl('classpath://scaffolder/response/post_200_kafka-api_unit_publish_application_json.json'))]" message="The response payload is not correct!" doc:name="Assert That - Payload is Expected" />
+        </munit:validation>
+	</munit:test>
+	<munit:test name="apix-unit-publish-config-test-400" doc:id="b993fc59-f4f1-4525-8658-ed85b8a80033" description="Test" timeOut="1200000" expectedErrorType="APIKIT:BAD_REQUEST">
+	    <munit:behavior>
+            <set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_kafka-api_unit_publish_application_json.json')]" doc:name="PublishUnit"/>
+			<munit-tools:mock-when doc:name="PublishUnit-Error" doc:id="aa4f82b9-54b2-45a1-a4f2-27209ffce3c1" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f1a48909-61bb-4a56-b430-eed605dffb39" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+        </munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to post:\kafka-api\unit\publish:application\json:apix-kafka-sapi-config" doc:id="4af5068c-2698-43e0-82c1-b39b19a2418a" name="post:\kafka-api\unit\publish:application\json:apix-kafka-sapi-config"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:fail doc:name="APIKIT:BAD_REQUEST" doc:id="205b9861-97f0-4a63-afa1-82585262d822" message="Bad request"/>
+        </munit:validation>
+	</munit:test>
+</mule>

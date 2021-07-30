@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:kafka="http://www.mulesoft.org/schema/mule/kafka" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/kafka http://www.mulesoft.org/schema/mule/kafka/current/mule-kafka.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<kafka:producer-config name="apacheKafkaProducerConfiguration" doc:name="Apache Kafka Producer configuration" doc:id="d9cee8bb-6795-4196-ae57-07c0cf6530e7" >
+		<kafka:producer-plaintext-connection >
+			<kafka:bootstrap-servers >
+				<kafka:bootstrap-server value="${bootstrap.server1}" />
+				<kafka:bootstrap-server value="${bootstrap.server2}" />
+				<kafka:bootstrap-server value="${bootstrap.server3}" />
+			</kafka:bootstrap-servers>
+		</kafka:producer-plaintext-connection>
+	</kafka:producer-config>
+	<json-logger:config name="jsonLoggerConfig" doc:name="JSON Logger Config" doc:id="302774cf-c623-4e77-9dbb-81418acee5d1" environment="${mule.env}" />
+	<http:listener-config name="${api.listenerConfig}" doc:name="HTTP Listener config" doc:id="9e50ea48-5a0e-4722-acda-c3b0e18f23b7" tracking:enable-default-events="false" basePath="/${api.artifactId}/${api.majorVersion}">
+		<http:listener-connection host="0.0.0.0" port="${api.port}" protocol="HTTPS" tlsContext="tlsContext">
+		</http:listener-connection>
+	</http:listener-config>
+	<configuration-properties doc:name="mainProperties" doc:id="e3fdcc25-aae8-4197-9b4c-9e3752e26097" file="properties/properties.yaml" />
+	<configuration-properties doc:name="logProperties" doc:id="1958ea7c-0eb6-4e0c-b48e-e1e0444cab8e" file="properties/log.properties" />
+	<kafka:consumer-config name="apacheKafkaConsumerConfigurationBatch" doc:name="Apache Kafka Consumer configuration" doc:id="1bef577a-7318-4bae-8a58-d8454fc160d3" >
+		<kafka:consumer-plaintext-connection groupId="consumer-cluster" autoOffsetReset="EARLIEST">
+			<kafka:bootstrap-servers >
+				<kafka:bootstrap-server value="${bootstrap.server1}" />
+				<kafka:bootstrap-server value="${bootstrap.server2}" />
+				<kafka:bootstrap-server value="${bootstrap.server3}" />
+			</kafka:bootstrap-servers>
+			<kafka:topic-patterns >
+				<kafka:topic-pattern value="${topic.value3}" />
+			</kafka:topic-patterns>
+		</kafka:consumer-plaintext-connection>
+	</kafka:consumer-config>
+	<file:config name="fileConfig" doc:name="File Config" doc:id="e9145ef5-f573-4543-a964-534a4f0b9a4d" />
+	<kafka:consumer-config name="apacheKafkaConsumerConfigurationSingle" doc:name="Apache Kafka Consumer configuration" doc:id="62d213f2-4989-4388-af49-69ded6cbe81c" >
+		<kafka:consumer-plaintext-connection groupId="consumer-cluster1" autoOffsetReset="EARLIEST">
+			<kafka:bootstrap-servers >
+				<kafka:bootstrap-server value="${bootstrap.server1}" />
+				<kafka:bootstrap-server value="${bootstrap.server2}" />
+				<kafka:bootstrap-server value="${bootstrap.server3}" />
+			</kafka:bootstrap-servers>
+			<kafka:topic-patterns >
+				<kafka:topic-pattern value="${topic.value2}" />
+			</kafka:topic-patterns>
+		</kafka:consumer-plaintext-connection>
+	</kafka:consumer-config>
+	<import doc:name="commonErrorImport" doc:id="d03d07d1-a0f7-4389-8d26-701e8ecee872" file="common-error.xml" />
+	<import doc:name="commonHealthImport" doc:id="3d2705a1-a7ac-4444-8c4b-515dd3c79e5f" file="common-health.xml" />
+	<configuration doc:name="commonErrorHandlerConfig" doc:id="c6f73b71-2422-4bb7-85ba-ab8034f4ba06" defaultErrorHandler-ref="common-error-handler" />
+	<tls:context name="tlsContext" doc:name="TLS Context" doc:id="a20b0b25-9b88-44d1-93a2-1da991c3cd48" >
+		<tls:key-store type="${tls.keystore.type}" path="${tls.keystore.path}" alias="${tls.keystore.alias}" keyPassword="${secure::tls.keystore.keyPassword}" password="${secure::tls.keystore.password}" />
+	</tls:context>
+	<configuration-properties doc:name="envProperties" doc:id="98858aae-92a4-46ca-b5fa-fabfea6bd52c" file="properties/${mule.env}-properties.yaml" />
+	<global-property doc:name="environmentProperty" doc:id="449bffb3-2fc6-4b5c-a728-92ba68026d47" name="mule.env" value="${mule.env}" />
+	<secure-properties:config name="securePropertiesConfig" doc:name="Secure Properties Config" doc:id="3d41c6fe-8bc3-4ea8-95f7-b55aaf8fa7e7" file="properties/${mule.env}-secure-properties.yaml" key="${secure.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<configuration-properties doc:name="envSecureProperties" doc:id="da0f58da-cf0e-4614-b2bb-c1edd0fdb412" file="properties/${mule.env}-secure-properties.yaml" />
+	<global-property doc:name="secureKeyProperty" doc:id="c43e2a2f-42a2-4825-8fe2-d5f6394ae051" name="secure.key" value="${secure.key}" />
+	<http:request-config name="readinessCheckSubFlowRequest" doc:name="HTTP Request configuration" doc:id="5731b62c-d504-405a-bea2-e85df2b57492" basePath="/${api.artifactId}/${api.majorVersion}">
+		<http:request-connection protocol="HTTPS" host="localhost" port="${api.port}" tlsContext="tlsContext" />
+	</http:request-config>
+	<sub-flow name="readiness-check-subflow" doc:id="582f2318-f80b-42f1-8879-df25d022d334" >
+		<try doc:name="Try" doc:id="5ab15c2a-9ddb-4cba-8b7e-166c7e37c7d8" >
+			<http:request method="GET" doc:name="readiness-check-request-flow" doc:id="7a62a9bc-6552-4fa9-a708-70348347a7e7" config-ref="readinessCheckSubFlowRequest" path="/live"/>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="69b584b2-5ec1-4dee-9f56-1c6e833c3dc7" type="ANY">
+					<ee:transform doc:name="LiveStatusErrorPayload" doc:id="955d4c06-3a53-4b08-a32f-010e21abe1de" >
+						<ee:message >
+							<ee:set-payload resource="dwl/error-main.dwl" />
+						</ee:message>
+					</ee:transform>
+					<json-logger:logger doc:name="readinessCheckSubflow Error Logger" doc:id="99a00cc3-ef76-4e9e-8afd-16a128ecde0f" config-ref="jsonLoggerConfig" message="readinessCheckSubflow Error Logger"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<ee:transform doc:name="Readiness Message" doc:id="45ee3c2c-de4b-4458-aa56-098f53bcd7da">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"service": "Kafka Publish",
+	"status": if(message.attributes.statusCode == 200) "UP" else "DOWN"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

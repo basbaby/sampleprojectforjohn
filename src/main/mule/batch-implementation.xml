@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:kafka="http://www.mulesoft.org/schema/mule/kafka" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/kafka http://www.mulesoft.org/schema/mule/kafka/current/mule-kafka.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+	<flow name="apix-publish-messageflow" doc:id="6ada1459-d84c-4976-8b19-844175bd1412" >
+		<json-logger:logger doc:name="Kafka Publish Start Logger" doc:id="b46a8b9b-195e-45a7-9de6-e4322cf376b2" config-ref="jsonLoggerConfig" message="Kafka Publish Start Logs"/>
+		<file:read doc:name="CSV File Messages" doc:id="d8e958c9-68b9-4928-8ee8-1a7c06b9e5dc" config-ref="fileConfig" path="/Users/rm/AnypointStudio/APIX-Kafka/apix-kafka-sapi/src/main/resources/CSV/beach-water-quality---automated-sensors.csv"/>
+		<ee:transform doc:name="CSV to Java" doc:id="2db3cb4f-afd9-4970-a56c-1a9670e51c31">
+			<ee:message>
+				<ee:set-payload resource="dwl/payload-to-java.dwl" />
+			</ee:message>
+		</ee:transform>
+		<batch:job jobName="apix-kafka-PublishMessage-BatchJob" doc:id="7d27c2e3-f485-49c1-90be-077f3aeb5112" maxFailedRecords="-1">
+			<batch:process-records >
+				<batch:step name="NoFailures" doc:id="065fe6db-9463-457b-8977-1c928458fbd4" >
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="514e2fa3-826b-4490-ad43-ab71229bc826" size="3">
+						<ee:transform doc:name="Java To Json for Mutable Object" doc:id="1cda194a-d73b-4f30-ad09-4bb3973565e0" >
+							<ee:message >
+								<ee:set-payload resource="dwl/payload-to-json.dwl" />
+							</ee:message>
+						</ee:transform>
+						<try doc:name="Try" doc:id="29e9c8ef-8046-4caf-b4bd-d81d81776322">
+							<kafka:publish doc:name="Publish-MessageToTopic" doc:id="2931be95-d59b-43ca-92bf-4256807d609d" config-ref="apacheKafkaProducerConfiguration" topic="${topic.value3}" key="#[now()]" >
+								<kafka:message ><![CDATA[#[payload.data]]]></kafka:message>
+							</kafka:publish>
+						<error-handler>
+							<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="4da860a0-1746-463f-ba65-0241a8656748" type="ANY">
+									<ee:transform doc:name="Error Description" doc:id="00fe46cc-070a-42e5-8f8b-3512dd75b777">
+									<ee:message>
+										<ee:set-payload resource="dwl/error-main.dwl"></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+								<json-logger:logger doc:name="Publish Message Error Logger" doc:id="9ea8d784-da44-4c0e-a553-bb92620f3ae7" config-ref="jsonLoggerConfig" message="Publish Message Error Logs" priority="ERROR" />
+							</on-error-continue>
+						</error-handler>
+					</try>
+					</batch:aggregator>
+				</batch:step>
+				<batch:step name="FailedRecords" doc:id="3a7e8e06-2f8f-46c6-abfb-f85771f64a19" acceptPolicy="ONLY_FAILURES">
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="366d7f8c-14e1-458c-b450-ad240c255ee7" size="3">
+						<ee:transform doc:name="FailedPayload" doc:id="7bc4d053-8cfa-405e-b851-9bbff790f0f4" >
+							<ee:message >
+								<ee:set-payload resource="dwl/error-main.dwl" />
+							</ee:message>
+						</ee:transform>
+						<json-logger:logger doc:name="Failed Records Payload Logs" doc:id="4ad91bdf-1be0-4f3e-9bed-0999e45799c8" config-ref="jsonLoggerConfig" message="Failed Records Payload Logs" tracePoint="EXCEPTION"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<json-logger:logger doc:name="BatchJob-OnCompleteLogger" doc:id="3bd198ae-f076-473f-9e36-3a3805c9f864" config-ref="jsonLoggerConfig" message="BatchJob-OnCompleteLogger"/>
+			</batch:on-complete>
+		</batch:job>
+		<ee:transform doc:name="Payload" doc:id="935fb6ce-a13e-4c0a-829e-461b5ebf7fa7" >
+			<ee:message >
+				<ee:set-payload resource="dwl/publish-batch.dwl" />
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
+		<json-logger:logger doc:name="Kafka Publish End Logger" doc:id="a66758fd-c6a5-4d68-8f75-9cd0eeaf4e27" config-ref="jsonLoggerConfig" message="Kafka Publish End Logs" tracePoint="END">
+		</json-logger:logger>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6c6c0f9e-6991-41c8-af2c-9da2a16acd18" type="ANY">
+				<ee:transform doc:name="Error Payload" doc:id="28255fae-9496-4f84-b9f1-3b5a82843467" >
+					<ee:message >
+						<ee:set-payload resource="dwl/error-main.dwl"></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="Publish Main Error Logger" doc:id="ba020073-7c6e-495e-982f-588ce2f0351f" config-ref="jsonLoggerConfig" message="Publish Main Error Logs" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="apix-consume-messageflow" doc:id="85288fce-424e-43ab-ba79-e1945955b236">
+		<kafka:batch-message-listener doc:name="Batch Consume message listener" doc:id="fa224e53-8105-48f2-af49-9b836b443d71" config-ref="apacheKafkaConsumerConfigurationBatch"/>
+		<ee:transform doc:name="payloadConsume" doc:id="3e6c0f0f-349f-4688-af79-ab808d619bbc">
+			<ee:message>
+				<ee:set-payload resource="dwl/consume.dwl"></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+		<json-logger:logger doc:name="Consumer Message Logger" doc:id="5880268f-83c8-458a-8f6d-f5ed28d08539" config-ref="jsonLoggerConfig" message="Consumer Message Logs">
+		</json-logger:logger>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f2edd7dd-d3e3-45c1-9486-b05d7ee052ba" type="ANY">
+				<ee:transform doc:name="Error Description" doc:id="1fef36a9-d883-4786-8cfe-1bd6d20f4397" >
+					<ee:message >
+						<ee:set-payload resource="dwl/error-main.dwl" />
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="Consume Error Logger" doc:id="7b0b702f-2915-425f-a26e-b5a9afce3705" config-ref="jsonLoggerConfig" message="Consume Error Logs" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="apix-seek-replica" doc:id="796915dc-262b-4fb7-ade7-66ea93274adc" >
+		<json-logger:logger doc:name="Seek Auto Listener  StartLogger" doc:id="63f8b0ea-1e36-4fdc-ad7a-e6b5e117fa99" config-ref="jsonLoggerConfig" message="Seek Auto Listener Start Logs"/>
+		<kafka:seek offset="#[attributes.queryParams.offset]" doc:name="SetReplicaOffset" doc:id="a7ce8968-5918-4f0c-8290-4a0459be81ec" config-ref="apacheKafkaConsumerConfigurationBatch" topic="${topic.value3}" partition="#[attributes.queryParams.partition]"/>
+		<json-logger:logger doc:name="Seek Auto Listener After Logger" doc:id="1588405c-12a1-48c7-8b19-09622273624f" config-ref="jsonLoggerConfig" message="Offset Seek Auto Listener After Logger" tracePoint="FLOW"/>
+		<ee:transform doc:name="Response Message" doc:id="df9e57f5-7d0c-4886-ab53-a3a2b49abb19" >
+			<ee:message >
+				<ee:set-payload resource="dwl/seek-reconsume.dwl"></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="Seek Replica End Logger" doc:id="c68bc1a5-9e75-458c-a97a-80c280112c9f" config-ref="jsonLoggerConfig" message="Seek Replica End Logs" tracePoint="END"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="bbf30a91-b964-4cba-be6d-eeef272d47d5" type="ANY">
+				<ee:transform doc:name="Error Payload" doc:id="c8c3f2c9-51cb-4024-aec3-6b15aa752e2b" >
+					<ee:message >
+						<ee:set-payload resource="dwl/error-main.dwl" />
+					</ee:message>
+				</ee:transform>
+				<json-logger:logger doc:name="Seek Replica Error Logger" doc:id="36ab261a-d773-41d8-ad8c-87014415796c" config-ref="jsonLoggerConfig" message="Seek Replica Error Logger" priority="ERROR"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

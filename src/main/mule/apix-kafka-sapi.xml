@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+    <apikit:config name="apix-kafka-sapi-config" api="apix-kafka-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="apix-kafka-sapi-main">
+        <http:listener path="/api/*" config-ref="${api.listenerConfig}" allowedMethods="GET,POST" doc:name="GET,POST /Listener">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="apix-kafka-sapi-config" />
+    </flow>
+    <flow name="apix-kafka-sapi-console">
+        <http:listener config-ref="${api.listenerConfig}" path="/console/*" allowedMethods="GET,POST" doc:name="GET,POST /Listener">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="apix-kafka-sapi-config" />
+    </flow>
+    <flow name="post:\kafka-api\publish:application\json:apix-kafka-sapi-config">
+        <flow-ref doc:name="apix-publish-messageflow" doc:id="99fbfcb7-1886-491d-b311-f88807c9196c" name="apix-publish-messageflow" />
+    </flow>
+    <flow name="get:\kafka-api\unit\consume:apix-kafka-sapi-config">
+        <flow-ref doc:name="apix-kafka-unit-consumeflow" doc:id="96c5a37a-7df6-4053-aabd-42f935562e0c" name="apix-kafka-unit-consumeflow" />
+    </flow>
+    <flow name="get:\kafka-api\consume:apix-kafka-sapi-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:name="AutoConsume">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Successfully Consumed"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\kafka-api\unit\publish:application\json:apix-kafka-sapi-config">
+        <flow-ref doc:name="apix-kafka-unit-publishflow" doc:id="f1a48909-61bb-4a56-b430-eed605dffb39" name="apix-kafka-unit-publishflow" />
+    </flow>
+    <flow name="get:\kafka-api\unit\seekConsume:apix-kafka-sapi-config">
+        <flow-ref doc:name="apix-consume-seekflow" doc:id="80f3d7ba-3495-4197-bcd7-71d8aa67b8f6" name="apix-consume-seekflow" />
+    </flow>
+    <flow name="get:\kafka-api\seekReplica:apix-kafka-sapi-config">
+        <flow-ref doc:name="apix-seek-replica" doc:id="4bc8e026-ffdb-4aa5-acdb-489bf3f9600f" name="apix-seek-replica" />
+    </flow>
+</mule>

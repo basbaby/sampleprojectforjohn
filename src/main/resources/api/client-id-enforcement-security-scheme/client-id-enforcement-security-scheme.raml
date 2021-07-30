@@ -1,0 +1,13 @@
+#%RAML 1.0 SecurityScheme
+type: Basic Authentication
+description: Basic Authentication using clientId and clientSecret
+displayName: ClientId Enforcement
+describedBy:
+  headers:
+    Authorization: 
+      description: Base64-encoded "clientId:clientSecret"
+      type: string
+  responses:
+    401:
+      description:  |
+        Unauthorized: clientId or clientSecret or the combination is invalid

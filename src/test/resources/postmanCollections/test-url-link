@@ -1,0 +1,17 @@
+Postman Collection Public Url:
+https://www.getpostman.com/collections/53deeca989c5904a16d4
+
+Post: Publish Batch Message
+https://localhost:8082/apix-kafka-sapi/v1/api/kafka-api/publish
+
+Get: Seek Batch Consume
+https://localhost:8082/apix-kafka-sapi/v1/api/kafka-api/seekReplica?partition=2&offset=6870
+
+Post: Publish Individual Message
+https://localhost:8082/apix-kafka-sapi/v1/api/kafka-api/unit/publish
+
+Get: Consume Individual Message
+https://localhost:8082/apix-kafka-sapi/v1/api/kafka-api/unit/consume
+
+Get: Seek Individual Consume
+https://localhost:8082/apix-kafka-sapi/v1/api/kafka-api/unit/seekConsume?partition=2&offset=6890

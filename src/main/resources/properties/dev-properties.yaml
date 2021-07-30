@@ -1,0 +1,4 @@
+tls.keystore: 
+  type: "pkcs12"
+  path: "certs/apix-kafka-sapi-dev.p12"
+  alias: "server"

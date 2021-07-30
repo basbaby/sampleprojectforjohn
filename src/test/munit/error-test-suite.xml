@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<munit:config name="error-test-suite.xml" />
+	<http:request-config name="ErrorHTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="322ce04f-4cf3-4965-9d62-885c471df888" >
+		<http:request-connection host="localhost" port="5000" />
+	</http:request-config>
+	<munit:test name="error-HTTP:CONNECTIVITY-flowTest" doc:id="931173a9-6498-49ea-93c8-a4c8469cd57f" description="Test" timeOut="120000" expectedErrorType="HTTP:CONNECTIVITY">
+		<munit:execution >
+			<http:request method="GET" doc:name="Request" doc:id="00489b97-f276-4248-8664-dd42ee7ef600" config-ref="ErrorHTTP_Request_configuration" path="/con"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="2139bdd2-b96a-46e0-bf34-ad4777889e36" message="The response is empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="error-HTTP:BAD_REQUEST-flowTest" doc:id="df5622b7-7b09-40f7-b8a1-21e28dc445bc" description="Test" timeOut="120000" expectedErrorType="HTTP:BAD_REQUEST">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PublishMessage" doc:id="57366751-7079-473a-aa11-381d12d2628d" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference to apix-kafka-unit-publishflow" doc:id="6d053198-f538-444c-934e-df43dac05905" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="f4e63e2e-f24f-43b7-8490-367853565f2a" message="The response is empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-HTTP:UNAUTHORIZED-flowTest" doc:id="8e9381be-9e1b-44df-9f21-bbd9eb7bf908" description="Test" timeOut="120000" expectedErrorType="HTTP:UNAUTHORIZED">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PublishMessage" doc:id="57246438-70f1-492c-8db7-3097d2f01330" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:UNAUTHORIZED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference to apix-kafka-unit-publishflow" doc:id="0ce141e4-7ff7-4915-984a-67a145259c82" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="889a13b9-223a-44ec-b8dc-59f697eb5b1a" message="The response is empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-HTTP:NOT_FOUND-flowTest" doc:id="9f8ad89d-87d8-4dd3-b2fe-9f13b972f264" description="Test" timeOut="120000" expectedErrorType="HTTP:NOT_FOUND">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PublishMessage" doc:id="34d3b44c-9fff-4ff6-be3a-173daa4db8e2" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference to apix-kafka-unit-publishflow" doc:id="235e7d02-3917-4dc6-91de-52a9c38f703b" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="d8a23d5d-76b8-41e8-ba18-4445cad6d5fd" message="The response is empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-HTTP:FORBIDDEN-flowTest" doc:id="586ca623-88ad-4fed-b90c-7eceb6e0a845" description="Test" timeOut="120000" expectedErrorType="HTTP:FORBIDDEN">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PublishMessage" doc:id="4825c203-6bc9-4320-8841-fe690765822b" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:FORBIDDEN" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference to apix-kafka-unit-publishflow" doc:id="52a0ddb3-ff90-4461-9152-e61041854150" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="68740d03-65fb-4cc0-9113-e3f3c7c47d38" message="The response is empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-HTTP:METHOD_NOT_ALLOWED-flowTest" doc:id="799e9446-f406-4203-b788-a92113c78080" description="Test" timeOut="120000" expectedErrorType="HTTP:METHOD_NOT_ALLOWED">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PublishMessage" doc:id="d1a791de-d65a-4589-ace4-d4a0fd89744d" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference to apix-kafka-unit-publishflow" doc:id="965fb827-2b6b-4ad8-9055-efd6fcf14575" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="a595d8e6-f2da-4aa7-a630-6e020c8a1b31" message="The response is empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-HTTP:UNSUPPORTED_MEDIA_TYPE-flowTest" doc:id="72a6933f-06e2-43bc-9a54-c14de332504a" description="Test" timeOut="120000" expectedErrorType="HTTP:UNSUPPORTED_MEDIA_TYPE">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PublishMessage" doc:id="986ff117-63dd-426e-b1cd-23ddfad28980" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:UNSUPPORTED_MEDIA_TYPE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference to apix-kafka-unit-publishflow" doc:id="fd242e0d-ae58-4386-a9cc-5fcaee0513ea" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="fd1d1cd5-7d27-41a0-8ae6-0c2331dd97ba" message="The response is empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-HTTP:INTERNAL_SERVER_ERROR-flowTest" doc:id="4c5e384d-1abe-4412-b247-5425554f315b" description="Test" timeOut="120000" expectedErrorType="HTTP:INTERNAL_SERVER_ERROR">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PublishMessage" doc:id="936496d6-fd9b-4fed-8f28-aacb01b231cc" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:INTERNAL_SERVER_ERROR" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference to apix-kafka-unit-publishflow" doc:id="e3249d61-5b56-4576-b476-9ad2579e863a" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="97eec9de-f08a-4bdb-920d-14c1d9eae489" message="The response is empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-HTTP:SERVICE_UNAVAILABLE-flowTest" doc:id="4097ff76-e9df-4f7b-9d1c-869ccbd5597e" description="Test" timeOut="120000" expectedErrorType="HTTP:SERVICE_UNAVAILABLE">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PublishMessage" doc:id="f94bbed8-c0dc-409a-987e-92f075b7ecd7" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:SERVICE_UNAVAILABLE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference to apix-kafka-unit-publishflow" doc:id="81d17184-03b3-434d-b78f-4ee157cddb22" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="f87ca828-e6cd-4061-af0a-87e53b6e4637" message="The response is empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-HTTP:TIMEOUT-flowTest" doc:id="ad2fc112-535c-4aeb-8b98-1f9fa92d67cf" description="Test" timeOut="120000" expectedErrorType="HTTP:TIMEOUT">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PublishMessage" doc:id="d2309231-fe9c-4359-8dbf-88e521e6c45d" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a5aec5a0-0910-45fe-a207-2dfefdd49fc5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:TIMEOUT" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference to apix-kafka-unit-publishflow" doc:id="7aca0700-b794-41b6-8dc2-315c9e1f3b8e" name="apix-kafka-unit-publishflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="24456c7b-787e-47ef-81df-9e35d6f45326" message="The response is empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+</mule>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="global-test-suite.xml" />
+	<munit:test name="global-test-suite-readiness-check-subflowTest" doc:id="a72ef291-f523-46df-b5ac-49e2401f5585" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to readiness-check-subflow" doc:id="7c59b67d-df81-4f03-8b85-a2c159870cdb" name="readiness-check-subflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="payload-service" doc:id="f0a479ed-31f0-4d92-bf50-0bc2fd1e7144" message="The response is not correct!" expression="#[payload.service]" is="#[MunitTools::equalTo('Kafka Publish')]"/>
+		</munit:validation>
+	</munit:test>
+
+</mule>

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="apix-kafka-implementation-test-suite.xml" />
+	<munit:test name="apix-publishConsumeMessageFlowTest" doc:id="78b3841d-128c-4268-a922-4c4a56ad205f" description="Test" timeOut="1200000">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="CSV File" doc:id="b652e5a0-1371-4bbb-ab9f-d4d1ed59fad6" processor="file:read">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d8e958c9-68b9-4928-8ee8-1a7c06b9e5dc" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[&#10;readUrl('classpath://CSV/accounts.csv','application/csv')&#10;]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:spy doc:name="Spy-BatchJob" doc:id="09b4a358-ddb3-4088-a03f-194f878b01d5" processor="json-logger:logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="3bd198ae-f076-473f-9e36-3a3805c9f864" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:before-call >
+					<munit-tools:assert-equals doc:name="Batch Successfull Record Step 1" doc:id="abcda6ac-902f-4252-9332-1a0ea0925eb8" actual="#[payload.failedRecords]" expected="#[0]" message="#['Opps!Some issue in the first Step']"/>
+				</munit-tools:before-call>
+				<munit-tools:after-call >
+					<munit-tools:assert-equals doc:name="Batch Total Failed Records" doc:id="8e2c1356-18e2-4176-bdd3-7d910a6fcd92" actual="#[payload.failedRecords]" expected="#[0]" message="#['We could see the failed records: ' ++ payload.failedRecords]"/>
+				</munit-tools:after-call>
+			</munit-tools:spy>
+			<munit-tools:mock-when doc:name="PublishMessage-KafkaConnector" doc:id="66b3ad62-9b2d-4c6c-b2e0-bfdbe739210f" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="2931be95-d59b-43ca-92bf-4256807d609d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[readUrl('classpath://dwl/publish-message.dwl')]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-publish-messageflow" doc:id="29f4b3d1-8fd7-4de6-970d-05473aff5d67" name="apix-publish-messageflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadNotNull" doc:id="b562a97e-16b4-4fb2-84e0-c9411f061326" message="#['Not an expected message']" expression="#[payload]" is="#[MunitTools::notNullValue()]" />
+			<munit-tools:sleep time="3" doc:name="Sleep" doc:id="3233a420-6e21-47f5-9b87-7b04c1eb73b9" timeUnit="SECONDS"/>
+			<munit-tools:verify-call doc:name="BatchJob Call" doc:id="830f8937-58bb-4619-91e4-4f2be6e4cd7e" processor="kafka:publish" atLeast="0">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="2931be95-d59b-43ca-92bf-4256807d609d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-consumeBatchMessageFlowTest" doc:id="75f9acf3-d0d5-4475-bcd6-ba88c3367670" description="Test" timeOut="1200000">
+		<munit:behavior >
+			<munit:set-event doc:name="PayloadToConsume" doc:id="37d7ce59-b149-431e-88cc-7535837b58a7" >
+				<munit:payload value='#[&#10;output application/json&#10;---&#10;{&#10;Message: "Message Consumed"&#10;}&#10;]' />
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="BatchConsume" doc:id="2d7a2f8b-59aa-4275-b49c-2ba1af177184" processor="kafka:batch-message-listener">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="fa224e53-8105-48f2-af49-9b836b443d71" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[readUrl('classpath://dwl/consume-message.dwl')]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-consume-messageflow" doc:id="0cba84be-dca6-48a1-b0f0-c5d42a4297d7" name="apix-consume-messageflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="PayloadMessage" doc:id="7724c141-038f-40dc-bd1d-b88b5afe111c" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+var msg = payload.Message
+var checking = ((msg != null) and (msg == "Message Consumed")) 
+ ---
+checking must notBeNull()]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-seekReplicaTest" doc:id="6aa2b725-0f9b-4554-9bad-7e50f0586881" description="Test" timeOut="1200000">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="PayloadSeek" doc:id="a0dfef95-aeaa-48c4-bf48-4fd6fff39a56" processor="kafka:seek">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a7ce8968-5918-4f0c-8290-4a0459be81ec" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[readUrl('classpath://dwl/seek-consume.dwl')]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-seek-replica" doc:id="1470f236-cd3d-4b11-a264-2717b08c54c2" name="apix-seek-replica"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="PayloadMessageNotNull" doc:id="6a95f574-a625-49d6-ac84-75a3c7957ea8" message="Payload is Empty!" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-Error-consumeMessageFlowTest" doc:id="28c75770-d952-4fbf-ae27-d777b6b99d05" description="Test" timeOut="120000" expectedErrorType="MULE:CRITICAL" expectedErrorDescription="Error in Consuming">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="ConsumeFlow-Error" doc:id="6705f538-2d1d-4590-9015-3b5af141553d" processor="json-logger:logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5880268f-83c8-458a-8f6d-f5ed28d08539" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="ANY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-consume-messageflow" doc:id="409557fd-446c-4e60-9327-b2afc5c1000d" name="apix-consume-messageflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:fail doc:name="ANY" doc:id="df5158fb-73b6-4ee1-80a7-08516c43c0ca" message="Error in Consuming"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-FileAccessDenied-ErrorpublishMessageFlowTest" doc:id="a4bcfa09-5570-4c7a-b317-1c5a41cffec1" description="Test" timeOut="120000" expectedErrorType="MULE:CRITICAL" expectedErrorDescription="File Access Denied">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="CSVFile" doc:id="2e029772-8b93-420a-b985-daf0ddcbed44" processor="file:read">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d8e958c9-68b9-4928-8ee8-1a7c06b9e5dc" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[&#10;readUrl('classpath://CSV/accounts.csv','application/csv')&#10;]" />
+					<munit-tools:error typeId="FILE:ACCESS_DENIED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="FileAccessIssue" doc:id="498c9f5c-b5b4-4ef9-9c2d-a992aec82e0e" processor="file:read">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d8e958c9-68b9-4928-8ee8-1a7c06b9e5dc" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="FILE:ACCESS_DENIED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-publish-messageflow" doc:id="20fb8161-53c6-4bbe-9b8c-565aba54adc7" name="apix-publish-messageflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:fail doc:name="FILE:ACCESS_DENIED" doc:id="694af882-8ec5-48f0-b56c-ea035507b68d" message="File Access Denied"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-KafkaError-PublishMessageFlowTest" doc:id="b887decb-8a2a-4a26-b170-d9fc0db13238" description="Test" timeOut="1200000" expectedErrorType="MULE:CRITICAL" expectedErrorDescription="Too Large input">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="CSV File" doc:id="8f85a026-2b9f-40fb-8a6c-4b1030c9bbb2" processor="file:read">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d8e958c9-68b9-4928-8ee8-1a7c06b9e5dc" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[&#10;readUrl('classpath://CSV/accounts.csv','application/csv')&#10;]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="BatchPublish-Error" doc:id="e214f843-aa43-4792-993b-b395d4847d77" processor="kafka:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="2931be95-d59b-43ca-92bf-4256807d609d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="KAFKA:INPUT_TOO_LARGE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-publish-messageflow" doc:id="64320780-de4a-49b3-bfb6-24da1ee464cc" name="apix-publish-messageflow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:fail doc:name="KAFKA:INPUT_TOO_LARGE" doc:id="fd7e23ae-ed94-4e31-8b35-b22272468b66" message="Too Large input"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="apix-seek-InvalidOffsetTest" doc:id="2c9ba80b-fd66-4b5a-96bd-12bcc9f1c180" description="Test" timeOut="120000" expectedErrorType="MULE:CRITICAL" expectedErrorDescription="Invalid Offset">
+		<munit:behavior >
+			<munit:set-event doc:name="Attributes_Invalid" doc:id="5928556b-dbe5-47d1-9cb6-cc859a44422a" >
+				<munit:attributes value='#[&#10;{&#10;queryParams:&#10;{&#10;"partition": "1111",&#10;"offset":  "aaa"&#10;}&#10;}&#10;]' />
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="SeekInvalidOffset" doc:id="e19d4c93-0fb5-4eb4-a576-8011399b0595" processor="kafka:seek">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a7ce8968-5918-4f0c-8290-4a0459be81ec" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="KAFKA:INVALID_OFFSET" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to apix-seek-replica" doc:id="8c764dab-9b40-440a-a719-2b69bcb3f525" name="apix-seek-replica"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:fail doc:name="KAFKA:INVALID_OFFSET" doc:id="0f37fe72-671a-4cdf-8065-e6c1417e2ece" message="Invalid Offset"/>
+		</munit:validation>
+	</munit:test>
+
+</mule>

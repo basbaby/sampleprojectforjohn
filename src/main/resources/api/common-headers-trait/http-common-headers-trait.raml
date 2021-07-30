@@ -1,0 +1,19 @@
+#%RAML 1.0 Trait
+description: Defines standard http request header,for eg. correlation Id
+displayName: HTTP Request Headers
+headers:
+    
+  x-correlation-id: 
+    displayName: CorrelationId
+    description: CorrelationId for end to end tracking of a request
+    type: string
+    required: true
+    minLength: 1
+    maxLength: 36
+    example: d135d5f1-3dd0-45fa-8f26-55d8d6a44876
+      
+responses:
+  401:
+    description: Unauthorized or invalid client application credentials
+  500:
+    description: Bad response from authorization server, or WSDL SOAP Fault error
